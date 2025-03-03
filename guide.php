@@ -1015,3 +1015,561 @@ class Singleton {
     
     public static function getInstance() {
         if (self::$instance === null) {
+self::$instance = new self();
+        }
+        return self::$instance;
+    }
+    
+    // Prevent cloning
+    private function __clone() {}
+    
+    // Prevent unserialization
+    private function __wakeup() {}
+}
+
+// Factory pattern
+interface Product {
+    public function getName();
+}
+
+class ConcreteProduct implements Product {
+    public function getName() {
+        return "Concrete Product";
+    }
+}
+
+class ProductFactory {
+    public function createProduct($type) {
+        switch ($type) {
+            case 'concrete':
+                return new ConcreteProduct();
+            default:
+                throw new Exception("Invalid product type");
+        }
+    }
+}
+
+// Observer pattern
+interface Observer {
+    public function update($subject);
+}
+
+class Subject {
+    private $observers = [];
+    private $state;
+    
+    public function attach(Observer $observer) {
+        $this->observers[] = $observer;
+    }
+    
+    public function detach(Observer $observer) {
+        $key = array_search($observer, $this->observers, true);
+        if ($key !== false) {
+            unset($this->observers[$key]);
+        }
+    }
+    
+    public function setState($state) {
+        $this->state = $state;
+        $this->notify();
+    }
+    
+    public function getState() {
+        return $this->state;
+    }
+    
+    private function notify() {
+        foreach ($this->observers as $observer) {
+            $observer->update($this);
+        }
+    }
+}
+
+class ConcreteObserver implements Observer {
+    public function update($subject) {
+        echo "State updated to: " . $subject->getState();
+    }
+}
+
+// =======================================================
+// COMPOSER & DEPENDENCY MANAGEMENT
+// =======================================================
+
+// composer.json file structure
+{
+    "name": "vendor/package",
+    "description": "Package description",
+    "type": "library",
+    "require": {
+        "php": ">=7.4",
+        "vendor/package": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vendor\\Package\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vendor\\Package\\Tests\\": "tests/"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "your.email@example.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
+
+// Using Composer's autoloader
+require __DIR__ . '/vendor/autoload.php';
+
+// =======================================================
+// PSR STANDARDS
+// =======================================================
+
+// PSR-1: Basic Coding Standard
+// - Files MUST use only <?php and <?= tags
+// - Files MUST use only UTF-8 without BOM for PHP code
+// - Files SHOULD either declare symbols (classes, functions, constants) OR cause side-effects (e.g. generate output) but NOT both
+// - Namespaces and classes MUST follow PSR-4
+// - Class names MUST be declared in StudlyCaps
+// - Class constants MUST be declared in all upper case with underscore separators
+// - Method names MUST be declared in camelCase
+
+// PSR-4: Autoloading Standard
+// Example of PSR-4 autoloader
+// src/
+//   Vendor/
+//     Package/
+//       Class.php (contains Vendor\Package\Class)
+
+// PSR-12: Extended Coding Style
+// - Code MUST use 4 spaces for indenting, not tabs
+// - Lines SHOULD be 80 chars or less, MUST be 120 chars or less
+// - There MUST be one blank line after namespace, and one blank line after block of use declarations
+// - Opening braces for classes MUST go on the next line, and closing braces MUST go on the next line after the body
+// - Opening braces for methods MUST go on the next line, and closing braces MUST go on the next line after the body
+// - Visibility MUST be declared on all properties and methods; abstract and final MUST be declared before visibility
+
+// =======================================================
+// TESTING
+// =======================================================
+
+// PHPUnit example
+use PHPUnit\Framework\TestCase;
+
+class CalculatorTest extends TestCase {
+    public function testAddition() {
+        $calculator = new Calculator();
+        $this->assertEquals(4, $calculator->add(2, 2));
+    }
+    
+    /**
+     * @dataProvider multiplicationProvider
+     */
+    public function testMultiplication($a, $b, $expected) {
+        $calculator = new Calculator();
+        $this->assertEquals($expected, $calculator->multiply($a, $b));
+    }
+    
+    public function multiplicationProvider() {
+        return [
+            [0, 1, 0],
+            [1, 2, 2],
+            [2, 2, 4],
+            [2, 3, 6]
+        ];
+    }
+    
+    public function testDivisionByZero() {
+        $this->expectException(DivisionByZeroError::class);
+        $calculator = new Calculator();
+        $calculator->divide(10, 0);
+    }
+}
+
+// Mocking
+class UserServiceTest extends TestCase {
+    public function testGetUser() {
+        // Create a mock of the UserRepository
+        $repository = $this->createMock(UserRepository::class);
+        
+        // Configure the mock
+        $repository->method('findById')
+            ->with(1)
+            ->willReturn(['id' => 1, 'name' => 'John']);
+        
+        // Inject the mock
+        $service = new UserService($repository);
+        
+        // Test the service
+        $user = $service->getUser(1);
+        $this->assertEquals('John', $user['name']);
+    }
+}
+
+// =======================================================
+// PERFORMANCE OPTIMIZATION
+// =======================================================
+
+// Opcode caching
+// Configure in php.ini or .htaccess:
+// opcache.enable=1
+// opcache.memory_consumption=128
+// opcache.interned_strings_buffer=8
+// opcache.max_accelerated_files=4000
+// opcache.revalidate_freq=60
+// opcache.fast_shutdown=1
+
+// Profiling with Xdebug
+// Configure in php.ini:
+// xdebug.mode=profile
+// xdebug.output_dir=/tmp/profiles
+
+// Benchmarking
+function benchmark($callback, $iterations = 1000) {
+    $start = microtime(true);
+    
+    for ($i = 0; $i < $iterations; $i++) {
+        $callback();
+    }
+    
+    $end = microtime(true);
+    return ($end - $start) / $iterations;
+}
+
+// Memory management
+// Get current memory usage
+$memory = memory_get_usage();
+
+// Get peak memory usage
+$peak = memory_get_peak_usage();
+
+// =======================================================
+// MODERN PHP FRAMEWORKS & TOOLS
+// =======================================================
+
+// Laravel - Popular PHP Framework
+// Example routes (routes/web.php)
+Route::get('/users', [UserController::class, 'index']);
+Route::post('/users', [UserController::class, 'store']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+
+// Example controller
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class UserController extends Controller {
+    public function index() {
+        $users = User::all();
+        return view('users.index', ['users' => $users]);
+    }
+    
+    public function show($id) {
+        $user = User::findOrFail($id);
+        return view('users.show', ['user' => $user]);
+    }
+    
+    public function store(Request $request) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:8|confirmed',
+        ]);
+        
+        $user = User::create($validated);
+        return redirect()->route('users.show', ['id' => $user->id]);
+    }
+}
+
+// Example model
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class User extends Model {
+    protected $fillable = ['name', 'email', 'password'];
+    
+    public function posts() {
+        return $this->hasMany(Post::class);
+    }
+}
+
+// Example Blade template (resources/views/users/show.blade.php)
+@extends('layouts.app')
+
+@section('content')
+    <h1>{{ $user->name }}</h1>
+    <p>{{ $user->email }}</p>
+    
+    <h2>Posts</h2>
+    <ul>
+        @foreach($user->posts as $post)
+            <li>{{ $post->title }}</li>
+        @endforeach
+    </ul>
+@endsection
+
+// Symfony - Another popular PHP Framework
+// Example controller
+namespace App\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class DefaultController extends AbstractController {
+    /**
+     * @Route("/", name="homepage")
+     */
+    public function index(): Response {
+        return $this->render('default/index.html.twig', [
+            'message' => 'Welcome to Symfony!',
+        ]);
+    }
+}
+
+// =======================================================
+// API DEVELOPMENT
+// =======================================================
+
+// RESTful API controller
+class ApiController {
+    private $userModel;
+    
+    public function __construct(UserModel $userModel) {
+        $this->userModel = $userModel;
+    }
+    
+    // GET /api/users
+    public function index() {
+        $users = $this->userModel->all();
+        return json_encode($users);
+    }
+    
+    // GET /api/users/{id}
+    public function show($id) {
+        $user = $this->userModel->find($id);
+        
+        if (!$user) {
+            http_response_code(404);
+            return json_encode(['error' => 'User not found']);
+        }
+        
+        return json_encode($user);
+    }
+    
+    // POST /api/users
+    public function store() {
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        // Validate data
+        $errors = $this->validateUser($data);
+        if (!empty($errors)) {
+            http_response_code(422);
+            return json_encode(['errors' => $errors]);
+        }
+        
+        $userId = $this->userModel->create($data);
+        http_response_code(201);
+        return json_encode(['id' => $userId]);
+    }
+    
+    // PUT /api/users/{id}
+    public function update($id) {
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        // Validate data
+        $errors = $this->validateUser($data);
+        if (!empty($errors)) {
+            http_response_code(422);
+            return json_encode(['errors' => $errors]);
+        }
+        
+        $success = $this->userModel->update($id, $data);
+        
+        if (!$success) {
+            http_response_code(404);
+            return json_encode(['error' => 'User not found']);
+        }
+        
+        return json_encode(['success' => true]);
+    }
+    
+    // DELETE /api/users/{id}
+    public function destroy($id) {
+        $success = $this->userModel->delete($id);
+        
+        if (!$success) {
+            http_response_code(404);
+            return json_encode(['error' => 'User not found']);
+        }
+        
+        http_response_code(204); // No content
+        return '';
+    }
+    
+    private function validateUser($data) {
+        $errors = [];
+        
+        if (empty($data['name'])) {
+            $errors['name'] = 'Name is required';
+        }
+        
+        if (empty($data['email'])) {
+            $errors['email'] = 'Email is required';
+        } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Email is invalid';
+        }
+        
+        return $errors;
+    }
+}
+
+// JWT Authentication
+function generateJWT($payload, $secret) {
+    $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
+    $header = base64_encode($header);
+    
+    $payload = json_encode($payload);
+    $payload = base64_encode($payload);
+    
+    $signature = hash_hmac('sha256', "$header.$payload", $secret, true);
+    $signature = base64_encode($signature);
+    
+    return "$header.$payload.$signature";
+}
+
+function verifyJWT($token, $secret) {
+    list($header, $payload, $signature) = explode('.', $token);
+    
+    $verifySignature = hash_hmac('sha256', "$header.$payload", $secret, true);
+    $verifySignature = base64_encode($verifySignature);
+    
+    if ($signature !== $verifySignature) {
+        return false;
+    }
+    
+    return json_decode(base64_decode($payload), true);
+}
+
+// =======================================================
+// DEPLOYING PHP APPLICATIONS
+// =======================================================
+
+// .htaccess for Apache
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+// Nginx configuration
+server {
+    listen 80;
+    server_name example.com;
+    root /var/www/html/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+
+// =======================================================
+// BEST PRACTICES
+// =======================================================
+
+// 1. Follow PSR standards
+// 2. Use modern PHP features (PHP 7.4+)
+// 3. Use Composer for dependency management
+// 4. Use a framework for larger applications
+// 5. Apply SOLID principles
+// 6. Write unit tests
+// 7. Use prepared statements for database operations
+// 8. Implement proper error handling
+// 9. Validate and sanitize all input
+// 10. Use environment-based configuration
+// 11. Apply proper security measures
+// 12. Document your code
+// 13. Use version control (Git)
+// 14. Implement a proper deployment workflow
+// 15. Monitor performance and optimize when necessary
+
+// =======================================================
+// PHP EXTENSIONS
+// =======================================================
+
+// Common extensions
+// - PDO: Database access
+// - MySQLi: MySQL improved extension
+// - GD/Imagick: Image processing
+// - cURL: HTTP requests
+// - Xdebug: Debugging and profiling
+// - OPcache: Opcode caching
+// - intl: Internationalization functions
+// - mbstring: Multibyte string functions
+// - xml: XML parsing
+// - json: JSON encoding/decoding
+// - fileinfo: File information
+// - zip: ZIP file manipulation
+
+// Check if extension is loaded
+if (extension_loaded('gd')) {
+    // Use GD functions
+}
+
+// Get loaded extensions
+$extensions = get_loaded_extensions();
+
+// =======================================================
+// END OF PHP GUIDE BIBLE
+// =======================================================
